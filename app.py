@@ -111,7 +111,6 @@ def get_default_params() -> Dict[str, Any]:
         "otsu_range": (0, 4),
         "first_kernel_size": (5, 5),
         "second_kernel_size": (3, 3),
-        "contours_mult": 2.5,
         "bh_ks": (7, 7),
         "bhm_iter": 4,
         "bhm_mult": 60,
@@ -133,7 +132,6 @@ def build_parameters_ui(p: Dict[str, Any], key_suffix: str) -> Dict[str, Any]:
     with st.expander("Advanced Settings", expanded=False):
         fk = st.slider("first_kernel_size (odd)", 1, 31, p.get("first_kernel_size", (5, 5))[0], 2, key=f"fk_{key_suffix}")
         sk = st.slider("second_kernel_size (odd)", 1, 31, p.get("second_kernel_size", (3, 3))[0], 2, key=f"sk_{key_suffix}")
-        cont_mult = st.slider("cont_mult", 0.1, 10.0, float(p.get("contours_mult", 2.5)), 0.1, key=f"cm_{key_suffix}")
         bh = st.slider("bh_ks (odd)", 1, 61, p.get("bh_ks", (7, 7))[0], 2, key=f"bh_{key_suffix}")
         bhm_iter = st.slider("bhm_iter", 1, 20, p.get("bhm_iter", 4), 1, key=f"bmi_{key_suffix}")
         bhm_mult = st.slider("bhm_mult", 1, 300, p.get("bhm_mult", 60), 1, key=f"bmm_{key_suffix}")
@@ -146,7 +144,6 @@ def build_parameters_ui(p: Dict[str, Any], key_suffix: str) -> Dict[str, Any]:
         "otsu_range": o_range,
         "first_kernel_size": (as_odd(fk), as_odd(fk)),
         "second_kernel_size": (as_odd(sk), as_odd(sk)),
-        "contours_mult": cont_mult,
         "bh_ks": (as_odd(bh), as_odd(bh)),
         "bhm_iter": bhm_iter,
         "bhm_mult": bhm_mult,

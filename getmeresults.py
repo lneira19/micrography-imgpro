@@ -8,7 +8,6 @@ import getmefibers as gmf
 def getMeResults(base_img, parameters = {
     'first_kernel_size': (5,5),
     'second_kernel_size': (3,3),
-    'contours_mult': 2.5,
     'bh_ks': (7,7),
     'bhm_iter': 4,
     'bhm_mult': 60,
