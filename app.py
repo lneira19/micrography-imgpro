@@ -4,6 +4,9 @@ import io
 import json
 from typing import Dict, Any, Tuple
 
+import matplotlib
+matplotlib.use('Agg')
+
 import cv2
 cv2.setUseOptimized(True)
 import numpy as np
