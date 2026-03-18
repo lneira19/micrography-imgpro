@@ -63,6 +63,11 @@ Running without flags processes the full combined result pipeline and writes out
 
 This project includes [`run_app.py`](/C:/lolo/dev/micrography-imgpro/run_app.py) and [`micrography-imgpro.spec`](/C:/lolo/dev/micrography-imgpro/micrography-imgpro.spec) for packaging the Streamlit app with PyInstaller.
 
+Already compiled in:
+```
+https://drive.google.com/file/d/1KBpbq2XgxP-d8Zz9wJ7xnF8enq3tX2Rc/view?usp=drive_link
+```
+
 Install PyInstaller:
 
 ```powershell
