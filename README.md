@@ -1,39 +1,98 @@
 # micrography-imgpro
-Image processing of micrography pictures.
 
-# app.py / the easier one / for not informatic people
-DEPLOY : https://itba-rocketry-imicrography-imgpro.streamlit.app/
+Micrograph image processing app for segmenting fibers, pores, resin, and undefined regions.
 
-or run:
+## What is included
+
+- `app.py`: Streamlit web UI for uploading images, tuning parameters, previewing results, and exporting a ZIP.
+- `controller.py`: command-line batch runner.
+- `getmeresults.py`, `getmefibers.py`, `getmeflashes.py`, `getmepores.py`: image processing pipeline modules.
+
+## Requirements
+
+- Python 3.10 or newer is recommended.
+- Install the packages listed in [`requirements.txt`](requirements.txt).
+
+## Install
+
+Create and activate a virtual environment, then install dependencies:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
-pip install streamlit opencv-python numpy
+
+## Run the app
+
+Start the Streamlit UI with:
+
+```powershell
 streamlit run app.py
 ```
 
-# Controller.py / cli interface
+Then open the local URL shown in the terminal, usually:
 
-this is meant to be called from console, you can do:
+```text
+http://localhost:8501
+```
 
-``` 
+## Use the CLI
+
+Run the batch processor from the terminal:
+
+```powershell
 python .\controller.py
 ```
-the flags available are:
--f   to run getMeFibers
--fl  to run getMeFlashes
--p   to run getMetPores
 
-example:
+Optional flags:
 
-``` 
+- `-f`: run fibers only
+- `-fl`: run flashes only
+- `-p`: run pores only
+
+Example:
+
+```powershell
 python .\controller.py -f -p
 ```
-this will run both fibers and pores
 
-running without flags will do getMeResults and output the colored images to a folder
+Running without flags processes the full combined result pipeline and writes output files to `processed_results`.
 
+## Build a single executable
 
-# Dependencies
+This project includes [`run_app.py`](run_app.py) and [`micrography-imgpro.spec`](micrography-imgpro.spec) for packaging the Streamlit app with PyInstaller.
 
-``` 
-pip install streamlit opencv-python numpy scikit-image
-``` 
+Already compiled in:
+```
+https://drive.google.com/drive/folders/19tp-wSOcunXumASR2pq6P5RpKWenxGwO?usp=drive_link
+```
+
+Install PyInstaller:
+
+```powershell
+pip install pyinstaller
+```
+
+Build the executable from the project root:
+
+```powershell
+pyinstaller --clean micrography-imgpro.spec
+```
+
+After the build completes, the executable will be created at:
+
+```text
+dist\micrography-imgpro.exe
+```
+
+Run it from a terminal the first time so any startup errors stay visible:
+
+```powershell
+.\dist\micrography-imgpro.exe
+```
+
+## Notes
+
+- The packaged app still launches a local Streamlit server and opens in the browser.
+- Do not commit `dist/` or `build/` outputs to GitHub unless you are using Git LFS.
