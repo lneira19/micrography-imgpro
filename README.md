@@ -35,5 +35,5 @@ running without flags will do getMeResults and output the colored images to a fo
 # Dependencies
 
 ``` 
-pip install streamlit opencv-python numpy scikit-image
+pip install streamlit opencv-python numpy scikit-image matplotlib
 ``` 
