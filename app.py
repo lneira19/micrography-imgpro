@@ -283,11 +283,6 @@ with st.sidebar:
 
         st.slider("Downscale size", 100, 2000, 1000, 50, key="downscale_size")
 
-        if st.button("Clear Cached Results"):
-            clear_cached_outputs()
-            cleanup_batch_zip()
-            st.success("Cached previews and batch export were cleared.")
-
         st.divider()
         st.header("Batch Export")
         if st.button("🚀 Process & Download All (ZIP)", type="primary"):
