@@ -1,7 +1,8 @@
 import os
 import zipfile
-import io
 import json
+import gc
+import tempfile
 from typing import Dict, Any, Tuple
 
 import matplotlib
@@ -22,6 +23,20 @@ import getmefibers as gmf
 from common import getSegmentationFigure
 
 # ---------- Helpers ----------
+
+def clear_cached_outputs():
+    for data in st.session_state.get("img_data", {}).values():
+        data["outputs"] = None
+    gc.collect()
+
+def cleanup_batch_zip():
+    zip_path = st.session_state.get("batch_zip_path")
+    if zip_path and os.path.exists(zip_path):
+        try:
+            os.remove(zip_path)
+        except OSError:
+            pass
+    st.session_state.batch_zip_path = None
 
 def fig_to_img(fig):
     fig.canvas.draw()
@@ -160,8 +175,12 @@ def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any]):
         getSegmentationFigure(segmentation, stats, "out", ax=ax)
         outputs["results"] = fig_to_img(fig)
         outputs["stats"] = stats
+        del segmentation
+        del coloring
     except Exception as e:
         st.error(f"Pipeline error: {e}")
+    finally:
+        gc.collect()
     return outputs
 
 def serialize_stats_for_export(stats, fname, params):
@@ -199,6 +218,8 @@ st.set_page_config(page_title="Batch Image Processor", layout="wide")
 
 if "img_data" not in st.session_state:
     st.session_state.img_data = {}
+if "batch_zip_path" not in st.session_state:
+    st.session_state.batch_zip_path = None
 
 with st.sidebar:
     st.header("Upload")
@@ -262,41 +283,55 @@ with st.sidebar:
 
         st.slider("Downscale size", 100, 2000, 1000, 50, key="downscale_size")
 
+        if st.button("Clear Cached Results"):
+            clear_cached_outputs()
+            cleanup_batch_zip()
+            st.success("Cached previews and batch export were cleared.")
+
         st.divider()
         st.header("Batch Export")
         if st.button("🚀 Process & Download All (ZIP)", type="primary"):
-            zip_buffer = io.BytesIO()
+            clear_cached_outputs()
+            cleanup_batch_zip()
             prog = st.progress(0)
             status = st.empty()
+            tmp_zip = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+            tmp_zip.close()
+            st.session_state.batch_zip_path = tmp_zip.name
 
-            with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+            with zipfile.ZipFile(tmp_zip.name, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
                 for idx, (fname, d) in enumerate(st.session_state.img_data.items()):
                     status.text(f"Processing {fname}...")
                     out = run_pipeline(d["image"], d["params"])
                     name_only = name_only_from_source(fname)
 
-                    if d.get("export_result", True) and out and "results" in out:
-                        zip_file.writestr(
-                            f"{name_only}_result.png",
-                            png_bytes_bgr(out["results"])
-                        )
+                    try:
+                        if d.get("export_result", True) and out and "results" in out:
+                            zip_file.writestr(
+                                f"{name_only}_result.png",
+                                png_bytes_bgr(out["results"])
+                            )
 
-                    if d.get("export_data", False) and out and "stats" in out:
-                        stats_fname, stats_bytes = serialize_stats_for_export(out["stats"], name_only, d["params"])
-                        zip_file.writestr(
-                            f"{name_only}_{stats_fname}",
-                            stats_bytes
-                        )
+                        if d.get("export_data", False) and out and "stats" in out:
+                            stats_fname, stats_bytes = serialize_stats_for_export(out["stats"], name_only, d["params"])
+                            zip_file.writestr(
+                                f"{name_only}_{stats_fname}",
+                                stats_bytes
+                            )
+                    finally:
+                        out = None
+                        gc.collect()
 
                     prog.progress((idx + 1) / len(st.session_state.img_data))
 
             status.text("Done!")
-            st.download_button(
-                "Download ZIP",
-                zip_buffer.getvalue(),
-                "batch_results.zip",
-                "application/zip"
-            )
+            with open(tmp_zip.name, "rb") as zip_stream:
+                st.download_button(
+                    "Download ZIP",
+                    zip_stream,
+                    "batch_results.zip",
+                    "application/zip"
+                )
 
 # ---------- Main Panel ----------
 if st.session_state.img_data and 'active_file' in locals():
