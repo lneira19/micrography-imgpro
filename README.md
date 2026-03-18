@@ -11,7 +11,7 @@ Micrograph image processing app for segmenting fibers, pores, resin, and undefin
 ## Requirements
 
 - Python 3.10 or newer is recommended.
-- Install the packages listed in [`requirements.txt`](/C:/lolo/dev/micrography-imgpro/requirements.txt).
+- Install the packages listed in [`requirements.txt`](requirements.txt).
 
 ## Install
 
@@ -61,11 +61,11 @@ Running without flags processes the full combined result pipeline and writes out
 
 ## Build a single executable
 
-This project includes [`run_app.py`](/C:/lolo/dev/micrography-imgpro/run_app.py) and [`micrography-imgpro.spec`](/C:/lolo/dev/micrography-imgpro/micrography-imgpro.spec) for packaging the Streamlit app with PyInstaller.
+This project includes [`run_app.py`](run_app.py) and [`micrography-imgpro.spec`](micrography-imgpro.spec) for packaging the Streamlit app with PyInstaller.
 
 Already compiled in:
 ```
-https://drive.google.com/file/d/1KBpbq2XgxP-d8Zz9wJ7xnF8enq3tX2Rc/view?usp=drive_link
+https://drive.google.com/drive/folders/19tp-wSOcunXumASR2pq6P5RpKWenxGwO?usp=drive_link
 ```
 
 Install PyInstaller:
