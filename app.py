@@ -120,20 +120,24 @@ def get_default_params() -> Dict[str, Any]:
     }
 
 def build_parameters_ui(p: Dict[str, Any], key_suffix: str) -> Dict[str, Any]:
-    st.subheader("Parameters")
-
-    o_classes = st.slider("Multi-Otsu Classes", 2, 10, p.get("otsu_classes", 5), key=f"ots_c_{key_suffix}")
-
-    curr_range = p.get("otsu_range", (0, 4))
-    safe_range = (min(curr_range[0], o_classes - 1), min(curr_range[1], o_classes - 1))
-
-    o_range = st.slider("Class Range", 0, o_classes - 1, safe_range, key=f"ots_r_{key_suffix}")
-
-    with st.expander("Advanced Settings", expanded=False):
+    with st.expander("Parameters", expanded=False):
+        st.caption("Black Hat / enhancement")
         bh = st.slider("bh_ks (odd)", 1, 61, p.get("bh_ks", (7, 7))[0], 2, key=f"bh_{key_suffix}")
         bhm_iter = st.slider("bhm_iter", 1, 20, p.get("bhm_iter", 4), 1, key=f"bmi_{key_suffix}")
         bhm_mult = st.slider("bhm_mult", 1, 300, p.get("bhm_mult", 60), 1, key=f"bmm_{key_suffix}")
+
+        st.caption("Otsu selection")
+        o_classes = st.slider("Multi-Otsu Classes", 2, 10, p.get("otsu_classes", 5), key=f"ots_c_{key_suffix}")
+
+        curr_range = p.get("otsu_range", (0, 4))
+        safe_range = (min(curr_range[0], o_classes - 1), min(curr_range[1], o_classes - 1))
+
+        o_range = st.slider("Class Range", 0, o_classes - 1, safe_range, key=f"ots_r_{key_suffix}")
+
+        st.caption("Contour filtering")
         cont_mult_fib = st.slider("cont_mult (fibers)", 0.1, 10.0, float(p.get("cont_mult", 2.5)), 0.1, key=f"cmf_{key_suffix}")
+
+        st.caption("Watershed")
         ws_ths_factor = st.slider("ws_ths_factor", 0.0001, 0.2, float(p.get("ws_ths_factor", 0.025)), 0.0005, format="%.4f", key=f"wsf_{key_suffix}")
         ws_gl_vecinity = st.slider("ws_gl_vecinity", 1, 200, p.get("ws_gl_vecinity", 15), 1, key=f"wsv_{key_suffix}")
 

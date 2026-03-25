@@ -93,7 +93,6 @@ def getMeFibers(base_img,
         debug_images = {
             'fibers_blur': test_1,
             'fibers_contrast': test_2,
-            'fibers_black_hat': black_hat_img,
             'fibers_black_hat_mask': black_hat_mask,
             'fibers_enhanced': test_3,
             'fibers_otsu_selection': thresh_1,
