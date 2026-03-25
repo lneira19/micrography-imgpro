@@ -327,13 +327,15 @@ if st.session_state.img_data and 'active_file' in locals():
                 debug_images = data["outputs"].get("debug_images", {})
                 if debug_images:
                     st.subheader("Debug Images")
-                    for k, v in debug_images.items():
-                        if isinstance(v, np.ndarray):
-                            st.image(
-                                normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
-                                caption=k,
-                                width="stretch"
-                            )
+                    _, debug_col, _ = st.columns([1, 2, 1])
+                    with debug_col:
+                        for k, v in debug_images.items():
+                            if isinstance(v, np.ndarray):
+                                st.image(
+                                    normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
+                                    caption=k,
+                                    width="stretch"
+                                )
                 else:
                     st.info("No debug images available for this preview.")
         else:
