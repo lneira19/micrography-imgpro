@@ -152,10 +152,14 @@ def build_parameters_ui(p: Dict[str, Any], key_suffix: str) -> Dict[str, Any]:
         "ws_gl_vecinity": ws_gl_vecinity,
     }
 
-def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any]):
+def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any], include_debug: bool = False):
     outputs: Dict[str, Any] = {}
     try:
-        stats, segmentation, coloring = getMeResults(base_img_gray, parameters)
+        if include_debug:
+            stats, segmentation, coloring, debug_images = getMeResults(base_img_gray, parameters, return_debug=True)
+            outputs["debug_images"] = debug_images
+        else:
+            stats, segmentation, coloring = getMeResults(base_img_gray, parameters)
         fig, ax = plt.subplots(figsize=(10, 6))
         getSegmentationFigure(segmentation, stats, "out", ax=ax)
         outputs["results"] = fig_to_img(fig)
@@ -251,7 +255,7 @@ with st.sidebar:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Preview"):
-                data["outputs"] = run_pipeline(data["preview_image"], data["params"])
+                data["outputs"] = run_pipeline(data["preview_image"], data["params"], include_debug=True)
         with col2:
             if st.button("Apply to All"):
                 for k in st.session_state.img_data:
@@ -306,6 +310,7 @@ if st.session_state.img_data and 'active_file' in locals():
     with col_l:
         st.subheader(f"Input: {active_file}")
         st.image(to_rgb_for_display(data["image"]), width="stretch")
+        show_debug = st.checkbox("Show debug images", value=False, key=f"show_debug_{active_file}")
 
     with col_r:
         st.subheader("Output Preview")
@@ -317,6 +322,20 @@ if st.session_state.img_data and 'active_file' in locals():
                         caption=k,
                         width="stretch"
                     )
+
+            if show_debug:
+                debug_images = data["outputs"].get("debug_images", {})
+                if debug_images:
+                    st.subheader("Debug Images")
+                    for k, v in debug_images.items():
+                        if isinstance(v, np.ndarray):
+                            st.image(
+                                normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
+                                caption=k,
+                                width="stretch"
+                            )
+                else:
+                    st.info("No debug images available for this preview.")
         else:
             st.info("Adjust parameters and click 'Preview'.")
 else:

@@ -16,7 +16,7 @@ def getMeResults(base_img, parameters = {
     'ws_gl_vecinity': 15,    
     'otsu_classes': 5,
     'otsu_range': (2, None)
-}):
+}, return_debug=False):
     
     pores_mask, undefined_mask = gmp.getMetPores(base_img,
                                                 first_kernel_size=parameters['first_kernel_size'],
@@ -24,15 +24,21 @@ def getMeResults(base_img, parameters = {
     
     flashes_mask = gmfl.getMeFlashes(base_img,cont_mult=parameters['cont_mult'])
     
-    fibers_mask, _, _ = gmf.getMeFibers(base_img,bh_ks=parameters['bh_ks'],
-                                        bhm_iter=parameters['bhm_iter'],
-                                        bhm_mult=parameters['bhm_mult'],
-                                        cont_mult=parameters['cont_mult'],
-                                        ws_ths_factor=parameters['ws_ths_factor'],
-                                        ws_gl_vecinity=parameters['ws_gl_vecinity'],
-                                        otsu_classes=parameters['otsu_classes'],
-                                        otsu_range=parameters['otsu_range']
-                                        )
+    fibers_result = gmf.getMeFibers(base_img,bh_ks=parameters['bh_ks'],
+                                    bhm_iter=parameters['bhm_iter'],
+                                    bhm_mult=parameters['bhm_mult'],
+                                    cont_mult=parameters['cont_mult'],
+                                    ws_ths_factor=parameters['ws_ths_factor'],
+                                    ws_gl_vecinity=parameters['ws_gl_vecinity'],
+                                    otsu_classes=parameters['otsu_classes'],
+                                    otsu_range=parameters['otsu_range'],
+                                    return_debug=return_debug
+                                    )
+
+    if return_debug:
+        fibers_mask, _, _, debug_images = fibers_result
+    else:
+        fibers_mask, _, _ = fibers_result
 
     # Se completa la máscara de objetos indefinidos
     undefined_mask_complete = np.zeros(np.shape(base_img), dtype=np.uint8)
@@ -92,5 +98,8 @@ def getMeResults(base_img, parameters = {
     segmentation[resin_mask != 0] = 150
     # 4. Indefinidos
     segmentation[undefined_mask_complete != 0] = 20
+
+    if return_debug:
+        return percentages, segmentation, coloring, debug_images
 
     return percentages, segmentation, coloring 
