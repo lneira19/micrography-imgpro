@@ -12,7 +12,8 @@ def getMeFibers(base_img,
                 ws_ths_factor=0.025,
                 ws_gl_vecinity=15,###################### VV nuevo
                 otsu_classes=5,
-                otsu_range=(2, None)):
+                otsu_range=(2, None),
+                return_debug=False):
     
     # Eliminación de ruido y mejora de contraste
     test_1 = cv2.GaussianBlur(base_img, (7, 7), 0)
@@ -87,6 +88,21 @@ def getMeFibers(base_img,
 
     # Aplicar watershed para obtener la segmentación final
     regions_result, binary_mask = applyWatershed(test_2, test_5, threshold_factor=ws_ths_factor, gl_vecinity=ws_gl_vecinity)
+
+    if return_debug:
+        debug_images = {
+            'fibers_blur': test_1,
+            'fibers_contrast': test_2,
+            'fibers_black_hat_mask': black_hat_mask,
+            'fibers_enhanced': test_3,
+            'fibers_otsu_selection': thresh_1,
+            'fibers_binary': test_4,
+            'fibers_contours_filtered': contours_filtered_img,
+            'fibers_flood_mask': mask_flood,
+            'fibers_post_close': test_5,
+            'fibers_watershed_binary': binary_mask,
+        }
+        return binary_mask, contours_filtered_img, list_masks, debug_images
 
     return binary_mask, contours_filtered_img, list_masks
 
