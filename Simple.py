@@ -147,6 +147,7 @@ def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any]):
         fig, ax = plt.subplots(figsize=(10, 6))
         getSegmentationFigure(segmentation, stats, "out", ax=ax)
         outputs["results"] = fig_to_img(fig)
+        outputs["coloring"] = coloring
         outputs["stats"] = stats
 
         _, _, _, fiber_steps = gmf.getMeFibersGammaOtsuWatershed(
@@ -158,7 +159,7 @@ def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any]):
             otsu_range=parameters["otsu_range"],
             return_steps=True,
         )
-        outputs["fiber_steps"] = fiber_steps
+        outputs["debug_images"] = dict(fiber_steps)
     except Exception as e:
         st.error(f"Pipeline error: {e}")
     return outputs
@@ -179,13 +180,22 @@ def serialize_stats_for_export(stats, fname, params):
     df = pd.DataFrame([row])
     return "stats.csv", df.to_csv(index=False).encode("utf-8")
 
-def get_exportable_items(outputs: Dict[str, Any], name_only: str, export_result: bool, export_data: bool) -> list[Tuple[str, bytes]]:
+def get_exportable_items(
+    outputs: Dict[str, Any],
+    name_only: str,
+    export_result: bool,
+    export_coloring: bool,
+    export_data: bool,
+) -> list[Tuple[str, bytes]]:
     items = []
     if not outputs:
         return items
 
     if export_result and "results" in outputs:
         items.append((f"{name_only}_results.png", png_bytes_bgr(outputs["results"])))
+
+    if export_coloring and "coloring" in outputs:
+        items.append((f"{name_only}_coloring.png", png_bytes(outputs["coloring"])))
 
     if export_data and "stats" in outputs:
         stats_fname, stats_bytes = serialize_stats_for_export(outputs["stats"], name_only, {})
@@ -232,6 +242,7 @@ with st.sidebar:
                     ),
                     "params": get_default_params(),
                     "export_result": True,
+                    "export_coloring": False,
                     "export_data": False,
                     "outputs": None
                 }
@@ -247,6 +258,7 @@ with st.sidebar:
 
         st.subheader("Export Options")
         data["export_result"] = st.checkbox("Result", value=data.get("export_result", True), key=f"export_result_{active_file}")
+        data["export_coloring"] = st.checkbox("Coloring", value=data.get("export_coloring", False), key=f"export_coloring_{active_file}")
         data["export_data"] = st.checkbox("Data (stats)", value=data.get("export_data", False), key=f"export_data_{active_file}")
 
         data["params"] = build_parameters_ui(data["params"], active_file)
@@ -260,6 +272,7 @@ with st.sidebar:
                 for k in st.session_state[IMG_DATA_KEY]:
                     st.session_state[IMG_DATA_KEY][k]["params"] = data["params"].copy()
                     st.session_state[IMG_DATA_KEY][k]["export_result"] = data["export_result"]
+                    st.session_state[IMG_DATA_KEY][k]["export_coloring"] = data["export_coloring"]
                     st.session_state[IMG_DATA_KEY][k]["export_data"] = data["export_data"]
                 st.success("Applied to all!")
 
@@ -282,6 +295,12 @@ with st.sidebar:
                         zip_file.writestr(
                             f"{name_only}_result.png",
                             png_bytes_bgr(out["results"])
+                        )
+
+                    if d.get("export_coloring", False) and out and "coloring" in out:
+                        zip_file.writestr(
+                            f"{name_only}_coloring.png",
+                            png_bytes(out["coloring"])
                         )
 
                     if d.get("export_data", False) and out and "stats" in out:
@@ -309,20 +328,36 @@ if st.session_state[IMG_DATA_KEY] and 'active_file' in locals():
     with col_l:
         st.subheader(f"Input: {active_file}")
         st.image(to_rgb_for_display(data["image"]), width="stretch")
+        show_debug = st.checkbox("Show debug images", value=False, key=f"show_debug_{active_file}")
 
     with col_r:
         st.subheader("Output Preview")
         if data["outputs"]:
-            if isinstance(data["outputs"].get("results"), np.ndarray):
-                st.image(data["outputs"]["results"], caption="results", width="stretch")
-            if "fiber_steps" in data["outputs"]:
-                st.subheader("Fiber Filter Steps")
-                for step_name, step_img in data["outputs"]["fiber_steps"]:
+            for k, v in data["outputs"].items():
+                if k in {"coloring", "debug_images"}:
+                    continue
+                if isinstance(v, np.ndarray):
                     st.image(
-                        normalize_mask_for_display(step_img),
-                        caption=step_name,
+                        normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
+                        caption=k,
                         width="stretch"
                     )
+
+            if show_debug:
+                debug_images = data["outputs"].get("debug_images", {})
+                if debug_images:
+                    st.subheader("Debug Images")
+                    _, debug_col, _ = st.columns([1, 2, 1])
+                    with debug_col:
+                        for k, v in debug_images.items():
+                            if isinstance(v, np.ndarray):
+                                st.image(
+                                    normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
+                                    caption=k,
+                                    width="stretch"
+                                )
+                else:
+                    st.info("No debug images available for this preview.")
         else:
             st.info("Adjust parameters and click 'Preview'.")
 else:
