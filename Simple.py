@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Existing pipeline modules
-from getmeresults import getMeResults
+from getmeresults import getMeResultsSimple
 import getmepores as gmp
 import getmeflashes as gmfl
 import getmefibers as gmf
@@ -143,7 +143,7 @@ def build_parameters_ui(p: Dict[str, Any], key_suffix: str) -> Dict[str, Any]:
 def run_pipeline(base_img_gray: np.ndarray, parameters: Dict[str, Any]):
     outputs: Dict[str, Any] = {}
     try:
-        stats, segmentation, coloring = getMeResults(base_img_gray, parameters)
+        stats, segmentation, coloring = getMeResultsSimple(base_img_gray, parameters)
         fig, ax = plt.subplots(figsize=(10, 6))
         getSegmentationFigure(segmentation, stats, "out", ax=ax)
         outputs["results"] = fig_to_img(fig)
