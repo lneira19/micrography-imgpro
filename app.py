@@ -108,7 +108,7 @@ def as_odd(n: int) -> int:
 def get_default_params() -> Dict[str, Any]:
     return {
         "otsu_classes": 5,
-        "otsu_range": (0, 4),
+        "otsu_range": (3, 4),
         "first_kernel_size": (5, 5),
         "second_kernel_size": (3, 3),
         "bh_ks": (7, 7),
@@ -337,6 +337,8 @@ if st.session_state.img_data and 'active_file' in locals():
         st.subheader("Output Preview")
         if data["outputs"]:
             for k, v in data["outputs"].items():
+                if k == "coloring":
+                    continue
                 if isinstance(v, np.ndarray):
                     st.image(
                         normalize_mask_for_display(v) if "mask" in k or "binary" in k else v,
